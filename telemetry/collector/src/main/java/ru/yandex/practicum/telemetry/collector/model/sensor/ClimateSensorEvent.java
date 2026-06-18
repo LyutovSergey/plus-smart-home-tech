@@ -1,5 +1,6 @@
 package ru.yandex.practicum.telemetry.collector.model.sensor;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +11,7 @@ import lombok.ToString;
 @ToString(callSuper = true)
 public class ClimateSensorEvent extends SensorEvent {
 
-    @PositiveOrZero
+    @NotNull
     private Integer temperatureC;
 
     @PositiveOrZero
