@@ -26,7 +26,7 @@ public class CollectorController extends CollectorControllerGrpc.CollectorContro
     private final HubEventMapper hubEventMapper;
 
     @Override
-    public void sendSensorEvent(SensorEventProto request, StreamObserver<Empty> responseObserver) {
+    public void collectSensorEvent(SensorEventProto request, StreamObserver<Empty> responseObserver) {
         log.info("Received gRPC sensor event: id={}, hubId={}", request.getId(), request.getHubId());
         try {
             var event = sensorEventMapper.toSensorEvent(request);
@@ -43,7 +43,7 @@ public class CollectorController extends CollectorControllerGrpc.CollectorContro
     }
 
     @Override
-    public void sendHubEvent(HubEventProto request, StreamObserver<Empty> responseObserver) {
+    public void collectHubEvent(HubEventProto request, StreamObserver<Empty> responseObserver) {
         log.info("Received gRPC hub event: hubId={}", request.getHubId());
         try {
             var event = hubEventMapper.toHubEvent(request);
