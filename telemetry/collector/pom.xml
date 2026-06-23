@@ -15,14 +15,29 @@
         <avro.version>1.11.1</avro.version>
         <confluent.version>7.6.0</confluent.version>
         <lombok.version>1.18.30</lombok.version>
+        <grpc-starter.version>3.1.0.RELEASE</grpc-starter.version>
     </properties>
 
     <dependencies>
-        <!-- Модуль с Avro-схемами -->
+        <!-- ПОДКЛЮЧАЕМ СОСЕДНИЙ МОДУЛЬ, ГДЕ ЛЕЖАТ СГЕНЕРИРОВАННЫЕ ПАКЕТЫ -->
+        <dependency>
+            <groupId>ru.yandex.practicum</groupId>
+            <artifactId>proto-schemas</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Модуль с Avro-схемами (если он еще нужен для Кафки) -->
         <dependency>
             <groupId>ru.yandex.practicum</groupId>
             <artifactId>avro-schemas</artifactId>
             <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Интеграция gRPC со Spring Boot (клиентские зависимости подтянутся из стартера сами) -->
+        <dependency>
+            <groupId>net.devh</groupId>
+            <artifactId>grpc-server-spring-boot-starter</artifactId>
+            <version>${grpc-starter.version}</version>
         </dependency>
 
         <!-- Spring Boot Starter Web -->
@@ -65,7 +80,10 @@
     </dependencies>
 
     <build>
+        <!-- УБРАЛИ блок extensions, так как сборка идет в другом модуле -->
         <plugins>
+            <!-- УБРАЛИ xolstice protobuf-maven-plugin, он здесь не нужен -->
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -93,6 +111,5 @@
             </plugin>
         </plugins>
     </build>
-
 
 </project>

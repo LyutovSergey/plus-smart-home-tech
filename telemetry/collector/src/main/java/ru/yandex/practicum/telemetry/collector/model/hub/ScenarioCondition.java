@@ -20,5 +20,5 @@ public class ScenarioCondition {
     @NotNull(message = "operation must not be null")
     private ConditionOperation operation;
 
-    private Integer value;
+    private Object value;  // ← ИЗМЕНЕНО: Integer → Object
 }
