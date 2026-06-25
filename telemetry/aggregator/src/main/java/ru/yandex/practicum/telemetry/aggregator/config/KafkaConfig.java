@@ -41,6 +41,7 @@ public class KafkaConfig {
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
                 "ru.yandex.practicum.telemetry.aggregator.deserializer.SensorEventDeserializer");
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1); // СТРОГО ПО ОДНОМУ СОБЫТИЮ
         return new KafkaConsumer<>(props);
     }
 
@@ -51,6 +52,7 @@ public class KafkaConfig {
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
         props.put(ProducerConfig.ACKS_CONFIG, "all");
+        props.put(ProducerConfig.LINGER_MS_CONFIG, 0); // НЕМЕДЛЕННАЯ ОТПРАВКА
         return new KafkaProducer<>(props);
     }
 }

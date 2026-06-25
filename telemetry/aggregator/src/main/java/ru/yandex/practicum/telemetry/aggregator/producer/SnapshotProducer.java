@@ -34,7 +34,18 @@ public class SnapshotProducer {
         String key = snapshot.getHubId();
         String topic = kafkaConfig.getSnapshotsTopic();
 
-        log.info("Отправка в топик: {}, ключ: {}", topic, key);
+        log.info("--- ДАННЫЕ СНАПШОТА ---");
+        log.info("Хаб: {}", key);
+        log.info("Топик: {}", topic);
+        log.info("Временная метка снапшота: {}", snapshot.getTimestamp());
+        log.info("Количество датчиков в снапшоте: {}", snapshot.getSensorsState().size());
+
+        snapshot.getSensorsState().forEach((sensorId, state) -> {
+            log.info("  Датчик: {}", sensorId);
+            log.info("    Время: {}", state.getTimestamp());
+            log.info("    Данные: {}", state.getData());
+        });
+        log.info("--- КОНЕЦ ДАННЫХ СНАПШОТА ---");
 
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             DatumWriter<SensorsSnapshotAvro> writer = new SpecificDatumWriter<>(SensorsSnapshotAvro.class);
@@ -43,7 +54,12 @@ public class SnapshotProducer {
             encoder.flush();
 
             byte[] serializedValue = outputStream.toByteArray();
-            log.info("Сериализовано {} байт", serializedValue.length);
+
+            log.info("--- ОТПРАВКА В KAFKA ---");
+            log.info("Топик: {}", topic);
+            log.info("Ключ: {}", key);
+            log.info("Размер данных: {} байт", serializedValue.length);
+            log.info("--- КОНЕЦ ОТПРАВКИ ---");
 
             ProducerRecord<String, byte[]> record = new ProducerRecord<>(topic, key, serializedValue);
 
@@ -51,7 +67,11 @@ public class SnapshotProducer {
                 if (exception != null) {
                     log.error("Ошибка отправки снапшота для хаба {}: {}", key, exception.getMessage());
                 } else {
-                    log.info("Снапшот для хаба {} отправлен в топик {}, оффсет {}", key, metadata.topic(), metadata.offset());
+                    log.info("Снапшот для хаба {} успешно отправлен:", key);
+                    log.info("   Топик: {}", metadata.topic());
+                    log.info("   Партиция: {}", metadata.partition());
+                    log.info("   Оффсет: {}", metadata.offset());
+                    log.info("   Время: {}", metadata.timestamp());
                 }
             });
 

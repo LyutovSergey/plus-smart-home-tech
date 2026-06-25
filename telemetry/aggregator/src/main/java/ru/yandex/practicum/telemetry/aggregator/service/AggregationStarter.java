@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.springframework.stereotype.Component;
@@ -46,12 +47,12 @@ public class AggregationStarter {
 
                 log.debug("Получено {} записей", records.count());
 
-                records.forEach(record -> {
+                for (ConsumerRecord<String, SensorEventAvro> record : records) {
                     SensorEventAvro event = record.value();
 
                     if (event == null) {
                         log.warn("Получено пустое событие, пропускаем");
-                        return;
+                        continue;
                     }
 
                     log.debug("Обработка события от датчика {} (хаб {})", event.getId(), event.getHubId());
@@ -60,10 +61,11 @@ public class AggregationStarter {
                     if (updatedSnapshot.isPresent()) {
                         log.info("Снапшот получен для хаба {}", updatedSnapshot.get().getHubId());
                         snapshotProducer.send(updatedSnapshot.get());
+                        snapshotProducer.flush();
                     } else {
                         log.debug("Снапшот не изменился, пропускаем");
                     }
-                });
+                }
 
                 try {
                     consumer.commitSync();

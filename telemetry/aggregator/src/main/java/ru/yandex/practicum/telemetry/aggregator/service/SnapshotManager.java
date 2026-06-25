@@ -1,6 +1,7 @@
 package ru.yandex.practicum.telemetry.aggregator.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.kafka.telemetry.event.*;
 
@@ -15,11 +16,7 @@ public class SnapshotManager {
 
     private final Map<String, SensorsSnapshotAvro> snapshots = new HashMap<>();
 
-    public Optional<SensorsSnapshotAvro> updateState(SensorEventAvro event) {
-        if (event == null) {
-            return Optional.empty();
-        }
-
+    public Optional<SensorsSnapshotAvro> updateState(@NonNull SensorEventAvro event) {
         String hubId = event.getHubId();
         String sensorId = event.getId();
         Instant eventTimestamp = event.getTimestamp();
@@ -42,7 +39,8 @@ public class SnapshotManager {
         if (oldState != null) {
             Instant oldTimestamp = oldState.getTimestamp();
 
-            if (!eventTimestamp.isAfter(oldTimestamp)) {
+            // Пропускаем только если событие СТАРШЕ сохранённого
+            if (eventTimestamp.isBefore(oldTimestamp)) {
                 return Optional.empty();
             }
         }
