@@ -1,6 +1,7 @@
 package ru.yandex.practicum.telemetry.aggregator.service;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -74,10 +75,6 @@ public class AggregationStarter {
         }
     }
 
-    public void stop() {
-        running = false;
-    }
-
     private void shutdown() {
         log.info("Завершение работы AggregationStarter...");
 
@@ -101,5 +98,11 @@ public class AggregationStarter {
         }
 
         log.info("AggregationStarter завершен");
+    }
+
+    @PreDestroy
+    public void stop() {
+        log.info("Получен сигнал завершения, останавливаем AggregationStarter...");
+        running = false;
     }
 }
