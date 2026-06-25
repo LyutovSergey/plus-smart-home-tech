@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.kafka.telemetry.event.*;
-
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,14 +32,11 @@ public class SnapshotManager {
                         .build()
         );
 
-        Map<String, SensorStateAvro> sensorsState = snapshot.getSensorsState();
-        SensorStateAvro oldState = sensorsState.get(sensorId);
+        SensorStateAvro oldState = snapshot.getSensorsState().get(sensorId);
 
         if (oldState != null) {
-            Instant oldTimestamp = oldState.getTimestamp();
-
-            // Пропускаем только если событие СТАРШЕ сохранённого
-            if (eventTimestamp.isBefore(oldTimestamp)) {
+            if (oldState.getTimestamp().isAfter(eventTimestamp)
+                    || oldState.getData().equals(event.getPayload())) {
                 return Optional.empty();
             }
         }
@@ -50,18 +46,12 @@ public class SnapshotManager {
                 .setData(event.getPayload())
                 .build();
 
-        sensorsState.put(sensorId, newState);
+        snapshot.getSensorsState().put(sensorId, newState);
         snapshot.setTimestamp(eventTimestamp);
-
-        log.info("Обновлен снапшот для хаба {}. Датчик {} обновлен", hubId, sensorId);
         return Optional.of(snapshot);
     }
 
     public Optional<SensorsSnapshotAvro> getSnapshot(String hubId) {
         return Optional.ofNullable(snapshots.get(hubId));
-    }
-
-    public int getSnapshotsCount() {
-        return snapshots.size();
     }
 }
