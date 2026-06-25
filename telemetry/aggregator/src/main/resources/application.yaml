@@ -1,0 +1,35 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: Aggregator
+
+kafka:
+  bootstrap-servers: localhost:9092
+  aggregator:
+    topics:
+      sensors: telemetry.sensors.v1
+      snapshots: telemetry.snapshots.v1
+
+  consumer:
+    group-id: aggregator-group
+    auto-offset-reset: earliest
+    enable-auto-commit: false
+    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    value-deserializer: ru.yandex.practicum.telemetry.aggregator.deserializer.SensorEventDeserializer
+    max-poll-records: 100
+
+  producer:
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+    properties:
+      schema.registry.url: http://localhost:8081
+      acks: all
+      retries: 3
+      enable.idempotence: true
+
+logging:
+  level:
+    ru.yandex.practicum: DEBUG
+    org.apache.kafka: INFO
