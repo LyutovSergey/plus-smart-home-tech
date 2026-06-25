@@ -45,12 +45,6 @@ public class SnapshotManager {
             if (!eventTimestamp.isAfter(oldTimestamp)) {
                 return Optional.empty();
             }
-
-            Object oldData = oldState.getData();
-            Object newData = event.getPayload();
-            if (oldData != null && oldData.equals(newData)) {
-                return Optional.empty();
-            }
         }
 
         SensorStateAvro newState = SensorStateAvro.newBuilder()
