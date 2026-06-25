@@ -21,13 +21,6 @@
         <lombok.version>1.18.30</lombok.version>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>confluent</id>
-            <url>https://confluent.io</url>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>ru.yandex.practicum</groupId>
@@ -50,19 +43,6 @@
             <artifactId>avro</artifactId>
             <version>${avro.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>io.confluent</groupId>
-            <artifactId>kafka-avro-serializer</artifactId>
-            <version>${confluent.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.kafka</groupId>
-                    <artifactId>kafka-clients</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
