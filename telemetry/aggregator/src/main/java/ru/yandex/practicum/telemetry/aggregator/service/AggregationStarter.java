@@ -57,7 +57,12 @@ public class AggregationStarter {
                     log.debug("Обработка события от датчика {} (хаб {})", event.getId(), event.getHubId());
 
                     Optional<SensorsSnapshotAvro> updatedSnapshot = snapshotManager.updateState(event);
-                    updatedSnapshot.ifPresent(snapshotProducer::send);
+                    if (updatedSnapshot.isPresent()) {
+                        log.info("Снапшот получен для хаба {}", updatedSnapshot.get().getHubId());
+                        snapshotProducer.send(updatedSnapshot.get());
+                    } else {
+                        log.debug("Снапшот не изменился, пропускаем");
+                    }
                 });
 
                 try {
