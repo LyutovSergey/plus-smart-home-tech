@@ -1,11 +1,11 @@
-package ru.yandex.practicum.analyzer.service;
+package ru.yandex.practicum.telemetry.analyzer.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.analyzer.model.*;
-import ru.yandex.practicum.analyzer.repository.*;
+import ru.yandex.practicum.telemetry.analyzer.model.*;
+import ru.yandex.practicum.telemetry.analyzer.repository.*;
 import ru.yandex.practicum.kafka.telemetry.event.*;
 
 import java.util.*;

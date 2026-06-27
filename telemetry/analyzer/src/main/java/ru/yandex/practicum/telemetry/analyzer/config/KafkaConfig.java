@@ -1,4 +1,4 @@
-package ru.yandex.practicum.analyzer.config;
+package ru.yandex.practicum.telemetry.analyzer.config;
 
 import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -7,8 +7,8 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.yandex.practicum.analyzer.deserializer.HubEventDeserializer;
-import ru.yandex.practicum.analyzer.deserializer.SnapshotDeserializer;
+import ru.yandex.practicum.telemetry.analyzer.deserializer.HubEventDeserializer;
+import ru.yandex.practicum.telemetry.analyzer.deserializer.SnapshotDeserializer;
 import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 

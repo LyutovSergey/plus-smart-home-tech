@@ -1,4 +1,4 @@
-package ru.yandex.practicum.analyzer.deserializer;
+package ru.yandex.practicum.telemetry.analyzer.deserializer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
