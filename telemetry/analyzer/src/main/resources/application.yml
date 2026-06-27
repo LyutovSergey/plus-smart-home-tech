@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: analyzer
+  datasource:
+    url: jdbc:postgresql://localhost:5432/smart_home
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+
+kafka:
+  bootstrap-servers: localhost:9092
+  consumer:
+    snapshot:
+      group-id: analyzer-snapshot-group
+      properties:
+        enable.auto.commit: false
+        auto.offset.reset: latest
+        max.poll.records: 100
+    hub-event:
+      group-id: analyzer-hub-event-group
+      properties:
+        enable.auto.commit: false
+        auto.offset.reset: earliest
+        max.poll.records: 100
+
+grpc:
+  client:
+    hub-router:
+      address: 'static://localhost:59090'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
+
+server:
+  port: 0
+
+logging:
+  level:
+    ru.yandex.practicum.analyzer: DEBUG
