@@ -19,7 +19,7 @@ public class Action {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ConditionType type;
+    private ActionType type;  // Был ConditionType, стал ActionType
 
     @Column(nullable = false)
     private Integer value;

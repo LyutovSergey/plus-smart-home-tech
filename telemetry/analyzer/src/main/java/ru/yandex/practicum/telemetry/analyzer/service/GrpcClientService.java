@@ -21,10 +21,13 @@ public class GrpcClientService {
     @GrpcClient("hub-router")
     private HubRouterControllerGrpc.HubRouterControllerBlockingStub hubRouterClient;
 
-    public void sendAction(String hubId, String scenarioName, Action action) {
+    public void sendAction(String hubId, String scenarioName, String sensorId, Action action) {
         try {
+            ActionTypeProto actionTypeProto = ActionTypeProto.valueOf(action.getType().name());
+
             DeviceActionProto deviceActionProto = DeviceActionProto.newBuilder()
-                    .setType(ActionTypeProto.SET_VALUE)
+                    .setSensorId(sensorId)
+                    .setType(actionTypeProto)
                     .setValue(action.getValue())
                     .build();
 
@@ -38,8 +41,8 @@ public class GrpcClientService {
                     .build();
 
             hubRouterClient.handleDeviceAction(request);
-            log.info("Sent action to hub: hubId={}, scenario={}, type={}, value={}",
-                    hubId, scenarioName, action.getType(), action.getValue());
+            log.info("Sent action to hub: hubId={}, scenario={}, sensorId={}, type={}, value={}",
+                    hubId, scenarioName, sensorId, action.getType(), action.getValue());
         } catch (Exception e) {
             log.error("Failed to send action to hub: hubId={}, scenario={}", hubId, scenarioName, e);
         }

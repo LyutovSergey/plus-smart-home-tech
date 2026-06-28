@@ -14,17 +14,17 @@ public class ScenarioAction {
     @EmbeddedId
     private ScenarioActionId id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @MapsId("scenarioId")
     @JoinColumn(name = "scenario_id")
     private Scenario scenario;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @MapsId("sensorId")
     @JoinColumn(name = "sensor_id")
     private Sensor sensor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @MapsId("actionId")
     @JoinColumn(name = "action_id")
     private Action action;

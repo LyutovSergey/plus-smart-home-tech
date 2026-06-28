@@ -85,10 +85,20 @@ public class HubEventProcessor implements Runnable {
         Map<String, Action> sensorActions = new HashMap<>();
 
         for (ScenarioConditionAvro conditionAvro : scenarioAdded.getConditions()) {
+            Object value = conditionAvro.getValue();
+            Integer intValue;
+            if (value instanceof Boolean) {
+                intValue = ((Boolean) value) ? 1 : 0;
+            } else if (value instanceof Integer) {
+                intValue = (Integer) value;
+            } else {
+                intValue = 0;
+            }
+
             Condition condition = Condition.builder()
                     .type(ConditionType.valueOf(conditionAvro.getType().name()))
                     .operation(OperationType.valueOf(conditionAvro.getOperation().name()))
-                    .value((Integer) conditionAvro.getValue())
+                    .value(intValue)
                     .build();
 
             sensorConditions.put(conditionAvro.getSensorId(), condition);
@@ -96,7 +106,7 @@ public class HubEventProcessor implements Runnable {
 
         for (DeviceActionAvro actionAvro : scenarioAdded.getActions()) {
             Action action = Action.builder()
-                    .type(ConditionType.valueOf(actionAvro.getType().name()))
+                    .type(ActionType.valueOf(actionAvro.getType().name()))
                     .value(actionAvro.getValue() != null ? actionAvro.getValue() : 0)
                     .build();
 

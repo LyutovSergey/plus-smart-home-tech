@@ -9,6 +9,7 @@ import ru.yandex.practicum.telemetry.analyzer.repository.*;
 import ru.yandex.practicum.kafka.telemetry.event.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -77,14 +78,14 @@ public class ScenarioService {
         log.info("Removed scenario: name={}, hubId={}", name, hubId);
     }
 
-    public Map<String, Action> analyzeSnapshot(SensorsSnapshotAvro snapshot) {
+    public Map<String, Map<String, Action>> analyzeSnapshot(SensorsSnapshotAvro snapshot) {
         String hubId = snapshot.getHubId();
         Map<String, SensorStateAvro> sensorStates = snapshot.getSensorsState();
 
         List<Scenario> scenarios = scenarioRepository.findByHubId(hubId);
         log.debug("Found {} scenarios for hub {}", scenarios.size(), hubId);
 
-        Map<String, Action> actionsToExecute = new HashMap<>();
+        Map<String, Map<String, Action>> scenariosToExecute = new HashMap<>();
 
         for (Scenario scenario : scenarios) {
             boolean allConditionsMet = scenario.getScenarioConditions().stream()
@@ -96,14 +97,17 @@ public class ScenarioService {
                     });
 
             if (allConditionsMet && !scenario.getScenarioConditions().isEmpty()) {
+                Map<String, Action> sensorActions = new HashMap<>();
                 scenario.getScenarioActions().forEach(sa -> {
-                    actionsToExecute.put(sa.getSensor().getId(), sa.getAction());
+                    sensorActions.put(sa.getSensor().getId(), sa.getAction());
                 });
+
+                scenariosToExecute.put(scenario.getName(), sensorActions);
                 log.info("Scenario '{}' triggered for hub {}", scenario.getName(), hubId);
             }
         }
 
-        return actionsToExecute;
+        return scenariosToExecute;
     }
 
     private boolean evaluateCondition(Condition condition, SensorStateAvro state) {
@@ -111,14 +115,15 @@ public class ScenarioService {
             return false;
         }
 
-        int sensorValue = extractSensorValue(state);
+        int sensorValue = extractSensorValue(state, condition.getType());
         return evaluateOperation(sensorValue, condition.getOperation(), condition.getValue());
     }
 
     private boolean matchesConditionType(SensorStateAvro state, ConditionType type) {
         switch (type) {
             case TEMPERATURE:
-                return state.getData() instanceof TemperatureSensorAvro;
+                return state.getData() instanceof TemperatureSensorAvro
+                        || state.getData() instanceof ClimateSensorAvro;
             case HUMIDITY:
                 return state.getData() instanceof ClimateSensorAvro;
             case LUMINOSITY:
@@ -147,13 +152,19 @@ public class ScenarioService {
         }
     }
 
-    private int extractSensorValue(SensorStateAvro state) {
+    private int extractSensorValue(SensorStateAvro state, ConditionType conditionType) {
         if (state.getData() instanceof TemperatureSensorAvro) {
             return ((TemperatureSensorAvro) state.getData()).getTemperatureC();
         } else if (state.getData() instanceof ClimateSensorAvro) {
             ClimateSensorAvro climate = (ClimateSensorAvro) state.getData();
-            // Возвращаем humidity или temperature_c или co2_level в зависимости от контекста
-            return climate.getHumidity();
+            if (conditionType == ConditionType.TEMPERATURE) {
+                return climate.getTemperatureC();
+            } else if (conditionType == ConditionType.HUMIDITY) {
+                return climate.getHumidity();
+            } else if (conditionType == ConditionType.CO2LEVEL) {
+                return climate.getCo2Level();
+            }
+            return 0;
         } else if (state.getData() instanceof LightSensorAvro) {
             return ((LightSensorAvro) state.getData()).getLuminosity();
         } else if (state.getData() instanceof MotionSensorAvro) {
@@ -163,4 +174,6 @@ public class ScenarioService {
         }
         return 0;
     }
+
+
 }

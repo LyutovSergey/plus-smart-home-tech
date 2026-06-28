@@ -7,12 +7,14 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.telemetry.analyzer.model.Action;
+import ru.yandex.practicum.telemetry.analyzer.model.Scenario;
 import ru.yandex.practicum.telemetry.analyzer.service.GrpcClientService;
 import ru.yandex.practicum.telemetry.analyzer.service.ScenarioService;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -53,12 +55,15 @@ public class SnapshotProcessor {
             String hubId = snapshot.getHubId();
             log.debug("Processing snapshot for hub: {}", hubId);
 
-            Map<String, Action> actions = scenarioService.analyzeSnapshot(snapshot);
+            Map<String, Map<String, Action>> actions = scenarioService.analyzeSnapshot(snapshot);
 
             if (!actions.isEmpty()) {
-                log.info("Found {} actions to execute for hub {}", actions.size(), hubId);
-                actions.forEach((sensorId, action) ->
-                        grpcClientService.sendAction(hubId, "scenario", action));
+                log.info("Found {} scenarios to execute for hub {}", actions.size(), hubId);
+                actions.forEach((scenarioName, sensorActions) -> {
+                    sensorActions.forEach((sensorId, action) -> {
+                        grpcClientService.sendAction(hubId, scenarioName, sensorId, action);
+                    });
+                });
             }
         } catch (Exception e) {
             log.error("Error processing snapshot for hub: {}", snapshot.getHubId(), e);
