@@ -1,6 +1,6 @@
 spring:
   application:
-    name: collector
+    name: aggregator
   config:
     import: "configserver:"
   cloud:
@@ -17,3 +17,4 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+
