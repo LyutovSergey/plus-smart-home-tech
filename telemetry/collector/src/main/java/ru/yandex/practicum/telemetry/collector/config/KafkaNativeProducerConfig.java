@@ -25,6 +25,7 @@ public class KafkaNativeProducerConfig {
 
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         properties.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
+        properties.put(ProducerConfig.LINGER_MS_CONFIG, 0);
 
         Serializer<String> keySerializer = new StringSerializer();
         Serializer<SpecificRecordBase> valueSerializer = new GeneralAvroSerializer();
