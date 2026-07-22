@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          # Указываем серверу искать конфиги в своих ресурсах, подставляя имя обратившегося клиента
+          searchLocations:
+            - classpath:config/telemetry/{application}
+
+server:
+  port: 8012 # Рекомендуемый порт для Config Server, чтобы он не конфликтовал с другими микросервисами
