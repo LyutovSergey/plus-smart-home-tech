@@ -1,0 +1,39 @@
+# Server
+server:
+  port: 8080
+
+# gRPC Server
+grpc:
+  server:
+    port: 59091
+    security:
+      enabled: false
+
+# Spring
+spring:
+  application:
+    name: Collector
+  # Kafka
+  kafka:
+    bootstrap-servers: localhost:9092
+
+# Topics
+kafka:
+  topic:
+    sensor-events: telemetry.sensors.v1
+    hub-events: telemetry.hubs.v1
+
+# Logging
+logging:
+  level:
+    ru:
+      yandex:
+        practicum:
+          telemetry:
+            collector: DEBUG
+    io:
+      grpc: DEBUG
+    net:
+      devh:
+        boot:
+          grpc: DEBUG
