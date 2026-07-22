@@ -47,3 +47,8 @@ server:
 logging:
   level:
     ru.yandex.practicum.analyzer: DEBUG
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/

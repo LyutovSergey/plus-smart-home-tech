@@ -9,3 +9,4 @@ spring:
       retry:
         use-random-policy: true
         max-interval: 6000
+
