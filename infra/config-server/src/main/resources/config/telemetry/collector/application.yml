@@ -37,3 +37,8 @@ logging:
       devh:
         boot:
           grpc: DEBUG
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/

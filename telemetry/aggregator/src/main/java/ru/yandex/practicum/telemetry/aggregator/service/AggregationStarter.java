@@ -29,7 +29,7 @@ public class AggregationStarter {
 
     private volatile boolean running = true;
 
-    @PostConstruct
+    //@PostConstruct Ломает подключение к эврике
     public void start() {
         log.info("Запуск AggregationStarter...");
 
