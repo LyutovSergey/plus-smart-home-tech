@@ -6,7 +6,4 @@ public class InventoryNotFoundException extends NotFoundException {
 		super("Inventory not found for product id: " + productId);
 	}
 
-	public InventoryNotFoundException(String message) {
-		super(message);
-	}
 }

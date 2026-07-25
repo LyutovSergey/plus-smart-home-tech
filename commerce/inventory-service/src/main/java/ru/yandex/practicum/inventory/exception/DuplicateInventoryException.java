@@ -6,7 +6,4 @@ public class DuplicateInventoryException extends RuntimeException {
 		super("Inventory already exists for product id: " + productId);
 	}
 
-	public DuplicateInventoryException(String message) {
-		super(message);
-	}
 }
