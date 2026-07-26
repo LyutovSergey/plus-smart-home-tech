@@ -43,10 +43,37 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>test</scope>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <CONFIG_IMPORT>optional:configserver:</CONFIG_IMPORT>
+                        <CONFIG_DISCOVERY_ENABLED>false</CONFIG_DISCOVERY_ENABLED>
+                        <CONFIG_FAIL_FAST>false</CONFIG_FAIL_FAST>
+                        <EUREKA_ENABLED>false</EUREKA_ENABLED>
+                        <spring.cloud.config.enabled>false</spring.cloud.config.enabled>
+                        <eureka.client.enabled>false</eureka.client.enabled>
+                    </systemPropertyVariables>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*AcceptanceTest.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
