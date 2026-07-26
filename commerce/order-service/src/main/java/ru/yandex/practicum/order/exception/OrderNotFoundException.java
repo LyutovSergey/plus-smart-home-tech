@@ -6,7 +6,5 @@ public class OrderNotFoundException extends NotFoundException {
 		super("Заказ не найден с id: " + id);
 	}
 
-	public OrderNotFoundException(String message) {
-		super(message);
-	}
+
 }

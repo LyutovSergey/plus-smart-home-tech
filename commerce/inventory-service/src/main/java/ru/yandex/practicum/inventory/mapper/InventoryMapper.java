@@ -24,8 +24,4 @@ public class InventoryMapper {
 				inventory.getAvailableQuantity()
 		);
 	}
-
-	public void updateEntity(Inventory inventory, UpdateInventoryRequest request) {
-		inventory.setQuantity(request.quantity());
-	}
 }
