@@ -10,9 +10,10 @@ spring:
           # Указываем серверу искать конфиги в своих ресурсах, подставляя имя обратившегося клиента
           searchLocations:
             - classpath:config/telemetry/{application}
+            - classpath:config/commerce/{application}
 
 server:
-  port: 0 # случайный
+  port: 8888
 eureka:
   client:
     serviceUrl:
