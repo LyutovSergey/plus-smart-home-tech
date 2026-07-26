@@ -13,7 +13,7 @@ spring:
             - classpath:config/commerce/{application}
 
 server:
-  port: 0 # случайный
+  port: 8888
 eureka:
   client:
     serviceUrl:
