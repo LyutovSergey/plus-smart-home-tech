@@ -10,10 +10,12 @@ import ru.yandex.practicum.order.dto.OrderItemRequest;
 import ru.yandex.practicum.order.entity.Order;
 import ru.yandex.practicum.order.entity.OrderItem;
 import ru.yandex.practicum.order.exception.OrderNotFoundException;
+import ru.yandex.practicum.order.feign.*;
 import ru.yandex.practicum.order.mapper.OrderMapper;
 import ru.yandex.practicum.order.repository.OrderRepository;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,7 +24,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class OrderService {
-
+	private final ProductClient productClient;
+	private final InventoryClient inventoryClient;
 	private final OrderRepository orderRepository;
 	private final OrderMapper orderMapper;
 
@@ -59,37 +62,69 @@ public class OrderService {
 	public OrderDto createOrder(CreateOrderRequest request) {
 		log.info("Создаём заказ для клиента: {}", request.customerEmail());
 
-		// Рассчитываем общую сумму
-		BigDecimal totalPrice = request.items().stream()
-				.map(item -> item.price().multiply(BigDecimal.valueOf(item.quantity())))
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
+		ProductDto product;
+		ReserveRequest reserveRequest;
+
+		List<OrderItem> items = new ArrayList<>();
+		BigDecimal totalPrice = BigDecimal.ZERO;
+
+		Order order = new Order();
+
+		for (OrderItemRequest orderItemRequest : request.items()) {
+
+			product = productClient.getProductById(orderItemRequest.productId());
+
+			if (!product.active()) {
+				throw new IllegalStateException("Товар " + product.name() + " снят с продажи");
+			}
+
+			BigDecimal itemPrice = product.price();
+			BigDecimal itemTotal = itemPrice.multiply(BigDecimal.valueOf(orderItemRequest.quantity()));
+			totalPrice = totalPrice.add(itemTotal);
+
+			// Актуализация позиции товара
+			OrderItem item = new OrderItem();
+			item.setProductId(product.id());
+			item.setProductName(product.name());  // актуальное название
+			item.setQuantity(orderItemRequest.quantity());
+			item.setPrice(itemPrice);             // актуальная цена
+			item.setOrder(order);
+			items.add(item);
+
+			log.debug("Добавили товар: {} x {} = {}",
+					item.getProductName(),
+					item.getQuantity(),
+					item.getPrice());
+		}
+
+		//резервируем товар
+		for (OrderItem item:items){
+
+			reserveRequest = new ReserveRequest(
+					item.getProductId(),
+					item.getQuantity()
+			);
+
+			try {
+				ReserveResponse reserveResponse = inventoryClient.reserveStock(reserveRequest);
+				log.debug("Зарезервировано: {} шт товара {}, осталось доступно: {}",
+						item.getQuantity(), item.getProductId(), reserveResponse.availableQuantity());
+			} catch (Exception e) {
+				log.error("Ошибка резервирования товара {}: {}", item.getProductId(), e.getMessage());
+				throw new RuntimeException("Не удалось зарезервировать товар: " + e.getMessage(), e);
+			}
+		}
 
 		log.debug("Общая сумма заказа: {}", totalPrice);
 
 		// Создаём заказ
-		Order order = new Order();
 		order.setCustomerName(request.customerName());
 		order.setCustomerEmail(request.customerEmail());
 		order.setTotalPrice(totalPrice);
 		order.setStatus("CREATED");
-
-		// Создаём позиции
-		List<OrderItem> items = request.items().stream()
-				.map(itemRequest -> {
-					OrderItem item = orderMapper.toEntity(itemRequest, order);
-					log.debug("Добавили товар: {} x {} = {}",
-							itemRequest.productName(),
-							itemRequest.quantity(),
-							itemRequest.price().multiply(BigDecimal.valueOf(itemRequest.quantity())));
-					return item;
-				})
-				.collect(Collectors.toList());
-
 		order.setItems(items);
-
 		Order saved = orderRepository.save(order);
 		log.info("Заказ создан с id: {}, общая сумма: {}", saved.getId(), saved.getTotalPrice());
-
 		return orderMapper.toDto(saved);
 	}
 }
