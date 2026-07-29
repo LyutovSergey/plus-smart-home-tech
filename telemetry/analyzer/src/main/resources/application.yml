@@ -1,49 +1,20 @@
 spring:
   application:
     name: analyzer
-  datasource:
-    url: jdbc:postgresql://localhost:5433/analyzer
-    username: analyzer
-    password: password
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: false
-  sql:
-    init:
-      mode: always
-      continue-on-error: true
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        serviceId: config-server
+      fail-fast: true
+      retry:
+        use-random-policy: true
+        max-interval: 6000
 
-kafka:
-  bootstrap-servers: localhost:9092
-  consumer:
-    snapshot:
-      group-id: analyzer-snapshot-group
-      properties:
-        enable.auto.commit: false
-        auto.offset.reset: latest
-        max.poll.records: 100
-    hub-event:
-      group-id: analyzer-hub-event-group
-      properties:
-        enable.auto.commit: false
-        auto.offset.reset: earliest
-        max.poll.records: 100
-
-grpc:
+eureka:
   client:
-    hub-router:
-      address: 'static://localhost:59090'
-      enableKeepAlive: true
-      keepAliveWithoutCalls: true
-      negotiationType: plaintext
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
 
-server:
-  port: 0
-
-logging:
-  level:
-    ru.yandex.practicum.analyzer: DEBUG
