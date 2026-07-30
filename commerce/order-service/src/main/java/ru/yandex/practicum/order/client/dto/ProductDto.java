@@ -1,4 +1,4 @@
-package ru.yandex.practicum.order.feign;
+package ru.yandex.practicum.order.client.dto;
 
 import java.math.BigDecimal;
 
