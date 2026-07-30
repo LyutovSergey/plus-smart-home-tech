@@ -4,18 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.order.dto.CreateOrderRequest;
 import ru.yandex.practicum.order.dto.OrderDto;
-import ru.yandex.practicum.order.dto.OrderItemRequest;
 import ru.yandex.practicum.order.entity.Order;
 import ru.yandex.practicum.order.entity.OrderItem;
 import ru.yandex.practicum.order.exception.OrderNotFoundException;
 import ru.yandex.practicum.order.feign.*;
 import ru.yandex.practicum.order.mapper.OrderMapper;
 import ru.yandex.practicum.order.repository.OrderRepository;
-
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,72 +55,23 @@ public class OrderService {
 	}
 
 	@Transactional
-	public OrderDto createOrder(CreateOrderRequest request) {
-		log.info("Создаём заказ для клиента: {}", request.customerEmail());
-
-		ProductDto product;
-		ReserveRequest reserveRequest;
-
-		List<OrderItem> items = new ArrayList<>();
-		BigDecimal totalPrice = BigDecimal.ZERO;
+	public OrderDto saveOrder(String customerName, String customerEmail, BigDecimal totalPrice, List<OrderItem> items) {
+		log.info("Сохраняем заказ для клиента: {}", customerEmail);
 
 		Order order = new Order();
-
-		for (OrderItemRequest orderItemRequest : request.items()) {
-
-			product = productClient.getProductById(orderItemRequest.productId());
-
-			if (!product.active()) {
-				throw new IllegalStateException("Товар " + product.name() + " снят с продажи");
-			}
-
-			BigDecimal itemPrice = product.price();
-			BigDecimal itemTotal = itemPrice.multiply(BigDecimal.valueOf(orderItemRequest.quantity()));
-			totalPrice = totalPrice.add(itemTotal);
-
-			// Актуализация позиции товара
-			OrderItem item = new OrderItem();
-			item.setProductId(product.id());
-			item.setProductName(product.name());  // актуальное название
-			item.setQuantity(orderItemRequest.quantity());
-			item.setPrice(itemPrice);             // актуальная цена
-			item.setOrder(order);
-			items.add(item);
-
-			log.debug("Добавили товар: {} x {} = {}",
-					item.getProductName(),
-					item.getQuantity(),
-					item.getPrice());
-		}
-
-		//резервируем товар
-		for (OrderItem item:items){
-
-			reserveRequest = new ReserveRequest(
-					item.getProductId(),
-					item.getQuantity()
-			);
-
-			try {
-				ReserveResponse reserveResponse = inventoryClient.reserveStock(reserveRequest);
-				log.debug("Зарезервировано: {} шт товара {}, осталось доступно: {}",
-						item.getQuantity(), item.getProductId(), reserveResponse.availableQuantity());
-			} catch (Exception e) {
-				log.error("Ошибка резервирования товара {}: {}", item.getProductId(), e.getMessage());
-				throw new RuntimeException("Не удалось зарезервировать товар: " + e.getMessage(), e);
-			}
-		}
-
-		log.debug("Общая сумма заказа: {}", totalPrice);
-
-		// Создаём заказ
-		order.setCustomerName(request.customerName());
-		order.setCustomerEmail(request.customerEmail());
+		order.setCustomerName(customerName);
+		order.setCustomerEmail(customerEmail);
 		order.setTotalPrice(totalPrice);
-		order.setStatus("CREATED");
+		order.setStatus("CONFIRMED");
 		order.setItems(items);
+
+		for (OrderItem item : items) {
+			item.setOrder(order);
+		}
+
 		Order saved = orderRepository.save(order);
-		log.info("Заказ создан с id: {}, общая сумма: {}", saved.getId(), saved.getTotalPrice());
+		log.info("Заказ сохранён с id: {}", saved.getId());
+
 		return orderMapper.toDto(saved);
 	}
 }
