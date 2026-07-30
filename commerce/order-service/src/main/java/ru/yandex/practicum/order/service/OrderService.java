@@ -7,8 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.order.dto.OrderDto;
 import ru.yandex.practicum.order.entity.Order;
 import ru.yandex.practicum.order.entity.OrderItem;
+import ru.yandex.practicum.order.entity.OrderStatus;
 import ru.yandex.practicum.order.exception.OrderNotFoundException;
-import ru.yandex.practicum.order.feign.*;
+import ru.yandex.practicum.order.client.*;
 import ru.yandex.practicum.order.mapper.OrderMapper;
 import ru.yandex.practicum.order.repository.OrderRepository;
 import java.math.BigDecimal;
@@ -55,14 +56,16 @@ public class OrderService {
 	}
 
 	@Transactional
-	public OrderDto saveOrder(String customerName, String customerEmail, BigDecimal totalPrice, List<OrderItem> items) {
-		log.info("Сохраняем заказ для клиента: {}", customerEmail);
+	public OrderDto saveOrder(String customerName, String customerEmail, BigDecimal totalPrice,
+							  List<OrderItem> items, OrderStatus status, String statusDetails) {
+		log.info("Сохраняем заказ для клиента: {} со статусом {}", customerEmail, status);
 
 		Order order = new Order();
 		order.setCustomerName(customerName);
 		order.setCustomerEmail(customerEmail);
 		order.setTotalPrice(totalPrice);
-		order.setStatus("CONFIRMED");
+		order.setStatus(status);
+		order.setStatusDetails(statusDetails);
 		order.setItems(items);
 
 		for (OrderItem item : items) {
@@ -70,7 +73,7 @@ public class OrderService {
 		}
 
 		Order saved = orderRepository.save(order);
-		log.info("Заказ сохранён с id: {}", saved.getId());
+		log.info("Заказ сохранён с id: {}, статус: {}", saved.getId(), saved.getStatus());
 
 		return orderMapper.toDto(saved);
 	}

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.order.feign;
+package ru.yandex.practicum.order.client.dto;
 
 public record ReserveRequest(
 		Long productId,
