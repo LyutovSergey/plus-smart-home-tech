@@ -37,8 +37,8 @@ class OrderServiceAcceptanceTest {
                 "Acceptance Buyer",
                 "acceptance-buyer@example.com",
                 List.of(
-                        new OrderItemRequest(1L, "Acceptance Smart Lamp", 2, new BigDecimal("3490.00")),
-                        new OrderItemRequest(2L, "Acceptance Smart Plug", 1, new BigDecimal("1290.00"))
+                        new OrderItemRequest(1L, 2),
+                        new OrderItemRequest(2L, 1)
                 )
         );
 
@@ -53,17 +53,14 @@ class OrderServiceAcceptanceTest {
                 .as("Созданный заказ должен содержать поле id")
                 .isNotNull();
         assertThat(created.get("status"))
-                .as("На текущем этапе новый заказ должен сохраняться в статусе CREATED")
-                .isEqualTo("CREATED");
+                .as("При успешном создании заказа статус должен быть CONFIRMED")
+                .isEqualTo("CONFIRMED");
         assertThat(asDecimal(created.get("totalPrice")))
-                .as("order-service должен сам рассчитывать totalPrice по снимку товаров из запроса")
-                .isEqualByComparingTo("8270.00");
+                .as("order-service должен рассчитывать totalPrice по данным из product-service")
+                .isPositive();
         assertThat((List<?>) created.get("items"))
                 .as("Заказ должен хранить позиции заказа")
-                .hasSize(2)
-                .anySatisfy(item -> assertThat((Map<String, Object>) item)
-                        .as("Позиция заказа должна хранить снимок названия и цены товара из запроса")
-                        .containsEntry("productName", "Acceptance Smart Lamp"));
+                .hasSize(2);
 
         MvcResult byIdResponse = mvc.perform(get("/api/orders/{id}", orderId)).andReturn();
 

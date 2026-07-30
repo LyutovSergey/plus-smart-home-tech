@@ -127,4 +127,47 @@ public class InventoryService {
 			);
 		}
 	}
+
+	@Transactional
+	public ReserveResponse release(ReserveRequest request) {
+		log.info("Пытаемся снять с резерва {} единиц товара {}", request.quantity(), request.productId());
+
+		try {
+			Inventory inventory = inventoryRepository.findByProductId(request.productId())
+					.orElseThrow(() -> {
+						log.warn("Остатки для товара {} не найдены", request.productId());
+						return new InventoryNotFoundException(request.productId());
+					});
+
+			int availableForRelease = inventory.getReservedQuantity();
+			log.debug("Доступно для снятия с резерва товара {}: {}", request.productId(), availableForRelease);
+
+			if (availableForRelease < request.quantity()) {
+				log.warn("Не хватает зарезервированного товара {}: доступно для снятия с резерва {}, запрошено {}",
+						request.productId(), availableForRelease, request.quantity());
+				throw new InsufficientStockException(
+						"Недостаточно товара для снятия с резерва. Доступно: " + availableForRelease + ", запрошено: " + request.quantity()
+				);
+			}
+
+			inventory.setReservedQuantity(inventory.getReservedQuantity() - request.quantity());
+			Inventory saved = inventoryRepository.save(inventory);
+
+			log.info("Успешно сняли с резерва {} единиц товара {}",
+					request.quantity(), request.productId());
+
+			return new ReserveResponse(
+					true,
+					saved.getAvailableQuantity(),
+					"Товар успешно снят с резерва"
+			);
+
+		} catch (ObjectOptimisticLockingFailureException e) {
+			log.warn("Кто-то параллельно изменил остатки товара {}, повторите запрос", request.productId());
+			throw new ObjectOptimisticLockingFailureException(
+					Inventory.class,
+					"Конфликт конкурентного доступа. Данные были изменены другим запросом. Повторите операцию."
+			);
+		}
+	}
 }
