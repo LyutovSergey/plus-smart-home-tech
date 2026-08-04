@@ -6,9 +6,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import ru.yandex.practicum.order.client.InventoryClient;
+import ru.yandex.practicum.order.client.ProductClient;
+import ru.yandex.practicum.order.client.dto.ProductDto;
+import ru.yandex.practicum.order.client.dto.ReserveResponse;
 import ru.yandex.practicum.order.dto.CreateOrderRequest;
 import ru.yandex.practicum.order.dto.OrderItemRequest;
 
@@ -17,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
@@ -31,8 +38,29 @@ class OrderServiceAcceptanceTest {
     @Autowired
     private ObjectMapper json;
 
+    @MockBean
+    private ProductClient productClient;
+
+    @MockBean
+    private InventoryClient inventoryClient;
+
     @Test
     void shouldCreateOrderStoreProductSnapshotAndFindOrderByIdAndEmail() throws Exception {
+        // Настройка моков
+        when(productClient.getProductById(1L)).thenReturn(
+                new ProductDto(1L, "Acceptance Smart Lamp", "Test lamp", new BigDecimal("3490.00"), true)
+        );
+        when(productClient.getProductById(2L)).thenReturn(
+                new ProductDto(2L, "Acceptance Smart Plug", "Test plug", new BigDecimal("1290.00"), true)
+        );
+
+        when(inventoryClient.reserveStock(any())).thenReturn(
+                new ReserveResponse(true, 100, "Stock reserved")
+        );
+        when(inventoryClient.releaseStock(any())).thenReturn(
+                new ReserveResponse(true, 100, "Stock released")
+        );
+
         CreateOrderRequest request = new CreateOrderRequest(
                 "Acceptance Buyer",
                 "acceptance-buyer@example.com",
@@ -72,7 +100,7 @@ class OrderServiceAcceptanceTest {
                 .isEqualTo("acceptance-buyer@example.com");
 
         MvcResult byEmailResponse = mvc.perform(get("/api/orders/by-email")
-                .param("email", "acceptance-buyer@example.com"))
+                        .param("email", "acceptance-buyer@example.com"))
                 .andReturn();
 
         assertThat(status(byEmailResponse))
@@ -104,8 +132,8 @@ class OrderServiceAcceptanceTest {
 
     private MvcResult postJson(String url, Object body) throws Exception {
         return mvc.perform(post(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json.writeValueAsString(body)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(body)))
                 .andReturn();
     }
 
