@@ -4,15 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.order.dto.CreateOrderRequest;
 import ru.yandex.practicum.order.dto.OrderDto;
-import ru.yandex.practicum.order.dto.OrderItemRequest;
 import ru.yandex.practicum.order.entity.Order;
 import ru.yandex.practicum.order.entity.OrderItem;
+import ru.yandex.practicum.order.entity.OrderStatus;
 import ru.yandex.practicum.order.exception.OrderNotFoundException;
+import ru.yandex.practicum.order.client.*;
 import ru.yandex.practicum.order.mapper.OrderMapper;
 import ru.yandex.practicum.order.repository.OrderRepository;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,7 +21,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class OrderService {
-
+	private final ProductClient productClient;
+	private final InventoryClient inventoryClient;
 	private final OrderRepository orderRepository;
 	private final OrderMapper orderMapper;
 
@@ -56,39 +56,24 @@ public class OrderService {
 	}
 
 	@Transactional
-	public OrderDto createOrder(CreateOrderRequest request) {
-		log.info("Создаём заказ для клиента: {}", request.customerEmail());
+	public OrderDto saveOrder(String customerName, String customerEmail, BigDecimal totalPrice,
+							  List<OrderItem> items, OrderStatus status, String statusDetails) {
+		log.info("Сохраняем заказ для клиента: {} со статусом {}", customerEmail, status);
 
-		// Рассчитываем общую сумму
-		BigDecimal totalPrice = request.items().stream()
-				.map(item -> item.price().multiply(BigDecimal.valueOf(item.quantity())))
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
-
-		log.debug("Общая сумма заказа: {}", totalPrice);
-
-		// Создаём заказ
 		Order order = new Order();
-		order.setCustomerName(request.customerName());
-		order.setCustomerEmail(request.customerEmail());
+		order.setCustomerName(customerName);
+		order.setCustomerEmail(customerEmail);
 		order.setTotalPrice(totalPrice);
-		order.setStatus("CREATED");
-
-		// Создаём позиции
-		List<OrderItem> items = request.items().stream()
-				.map(itemRequest -> {
-					OrderItem item = orderMapper.toEntity(itemRequest, order);
-					log.debug("Добавили товар: {} x {} = {}",
-							itemRequest.productName(),
-							itemRequest.quantity(),
-							itemRequest.price().multiply(BigDecimal.valueOf(itemRequest.quantity())));
-					return item;
-				})
-				.collect(Collectors.toList());
-
+		order.setStatus(status);
+		order.setStatusDetails(statusDetails);
 		order.setItems(items);
 
+		for (OrderItem item : items) {
+			item.setOrder(order);
+		}
+
 		Order saved = orderRepository.save(order);
-		log.info("Заказ создан с id: {}, общая сумма: {}", saved.getId(), saved.getTotalPrice());
+		log.info("Заказ сохранён с id: {}, статус: {}", saved.getId(), saved.getStatus());
 
 		return orderMapper.toDto(saved);
 	}

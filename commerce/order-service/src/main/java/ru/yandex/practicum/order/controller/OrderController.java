@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.order.dto.CreateOrderRequest;
 import ru.yandex.practicum.order.dto.OrderDto;
+import ru.yandex.practicum.order.service.OrderOrchestrationService;
 import ru.yandex.practicum.order.service.OrderService;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.List;
 public class OrderController {
 
 	private final OrderService orderService;
+	private final OrderOrchestrationService orderOrchestrationService;
 
 	@GetMapping
 	public List<OrderDto> getAllOrders() {
@@ -41,6 +43,6 @@ public class OrderController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public OrderDto createOrder(@Valid @RequestBody CreateOrderRequest request) {
 		log.info("POST /api/orders - создание заказа для клиента: {}", request.customerEmail());
-		return orderService.createOrder(request);
+		return orderOrchestrationService.createOrder(request);
 	}
 }
