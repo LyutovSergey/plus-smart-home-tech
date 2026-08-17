@@ -52,4 +52,12 @@ public class InventoryController {
 				request.quantity(), request.productId());
 		return inventoryService.reserve(request);
 	}
+
+	@PostMapping("/release")
+	public ReserveResponse release(@Valid @RequestBody ReserveRequest request) {
+		log.info("POST /api/inventory/release - снятие с резерва {} единиц товара {}",
+				request.quantity(), request.productId());
+		return inventoryService.release(request);
+
+	}
 }

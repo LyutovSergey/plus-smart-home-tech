@@ -27,8 +27,9 @@ public class Order {
 	@Column(name = "customer_email", nullable = false)
 	private String customerEmail;
 
+	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private String status = "CREATED";
+	private OrderStatus status = OrderStatus.PENDING_CONFIRMATION;
 
 	@Column(name = "total_price", nullable = false)
 	private BigDecimal totalPrice;
@@ -46,7 +47,7 @@ public class Order {
 	protected void onCreate() {
 		createdAt = LocalDateTime.now();
 		if (status == null) {
-			status = "CREATED";
+			status = OrderStatus.PENDING_CONFIRMATION;
 		}
 	}
 

@@ -13,16 +13,6 @@ import java.util.stream.Collectors;
 @Component
 public class OrderMapper {
 
-	public OrderItem toEntity(OrderItemRequest request, Order order) {
-		return new OrderItem(
-				order,
-				request.productId(),
-				request.productName(),
-				request.quantity(),
-				request.price()
-		);
-	}
-
 	public OrderItemDto toDto(OrderItem item) {
 		if (item == null) {
 			return null;

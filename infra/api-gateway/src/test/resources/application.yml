@@ -1,0 +1,27 @@
+spring:
+  cloud:
+    config:
+      enabled: false
+  config:
+    import: "optional:configserver:"
+
+eureka:
+  client:
+    enabled: false
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+
+app:
+  security:
+    users:
+      - username: ivan
+        password: ivan
+        roles:
+          - USER
+      - username: anna
+        password: anna
+        roles:
+          - USER
+          - ADMIN
